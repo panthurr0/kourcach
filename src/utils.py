@@ -17,6 +17,7 @@ def load_requisites():
     return executed_requisites
 
 
+
 def format_date(date_str):
     """
     Функция для форматирования даты из строки
@@ -47,3 +48,5 @@ def mask_account_number(account_number):
     """
     masked_number = "**" + account_number[-4:]
     return masked_number
+
+
