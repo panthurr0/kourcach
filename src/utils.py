@@ -1,57 +1,49 @@
 import json
 from datetime import datetime
-from operator import itemgetter
+
+
+def load_requisites():
+    """
+    список EXECUTED реквизитов
+    """
+    with open('../operations.json') as file:
+        requisites_data = json.load(file)
+    executed_requisites = []
+
+    for i in requisites_data:
+        if i.get('state') == "EXECUTED":
+            executed_requisites.append(i)
+
+    return executed_requisites
 
 
 def format_date(date_str):
-    # Функция для форматирования даты из строки
+    """
+    Функция для форматирования даты из строки
+    """
     date_obj = datetime.fromisoformat(date_str)
     return date_obj.strftime("%d.%m.%Y")
 
 
-def mask_card_number(card_number):
-    # Функция для замаскирования номера карты
-    masked_number = card_number[:4] + " XX** **** " + card_number[-4:]
-    return masked_number
+def mask_card_number(card_number: str) -> str:
+    """
+    Функция для замаскирования номера карты
+    """
+    parts = card_number.split()
+    number = parts[-1]
+    if card_number.lower().startswith('счет'):
+        hided_number = f"**{number[-4:]}"
+    elif card_number.lower().startswith('номер'):
+        hided_number = f"отсутствует"
+    else:
+        hided_number = f"{number[:4]} {number[4:6]}** **** {number[-4:]}"
+    parts[-1] = hided_number
+    return ' '.join(parts)
 
 
 def mask_account_number(account_number):
-    # Функция для замаскирования номера счета
+    """
+    Функция выводит замаскированный номер счёта
+    """
     masked_number = "**" + account_number[-4:]
     return masked_number
-
-
-def print_recent_operations(operations):
-    # Сортируем операции по дате в убывающем порядке
-    sorted_operations = sorted(operations, key=itemgetter('date'), reverse=True)
-
-    # Выводим последние 5 операций
-    for operation in sorted_operations[:5]:
-        print(format_date(operation['date']), operation['description'])
-        print(mask_card_number(operation['from']), "->", mask_account_number(operation['to']))
-        print(f"{operation['operationAmount']['amount']} {operation['operationAmount']['currency']['name']}")
-        print()
-
-
-# Пример данных из вашего JSON файла
-operations_data = [
-    {
-        "id": 441945886,
-        "state": "EXECUTED",
-        "date": "2019-08-26T10:50:58.294041",
-        "operationAmount": {
-            "amount": "31957.58",
-            "currency": {
-                "name": "руб.",
-                "code": "RUB"
-            }
-        },
-        "description": "Перевод организации",
-        "from": "Maestro 1596837868705199",
-        "to": "Счет 64686473678894779589"
-    },
-    # Добавьте остальные операции из вашего JSON файла
-]
-
-# Выводим результат
-print_recent_operations(operations_data)
