@@ -1,9 +1,6 @@
-from src.utils import (load_requisites, format_date, mask_card_number,
+from src.utils import (print_requisites, sorted_with_date, load_requisites, format_date, mask_card_number,
                        mask_account_number, executed_files)
-import json
-import pytest
-import os
-from config import DATA_TEST, DATA_TEST_LIST
+from config import DATA_TEST, DATA_TEST_LIST, DATA
 
 
 def test_load_requisites():
@@ -43,20 +40,27 @@ def test_executed_files():
             "description": "Перевод организации",
             "from": "Visa Gold 5999414228426353",
             "to": "Счет 72731966109147704472"
-        },
+        }
+    ]
+
+
+def test_sorted_with_date():
+    operations_data = executed_files(DATA_TEST_LIST)
+    assert sorted_with_date(operations_data) == [
         {
-            "id": 863064926,
+            "id": 716496732,
             "state": "EXECUTED",
-            "date": "2019-12-08T22:46:21.935582",
+            "date": "2018-04-04T17:33:34.701093",
             "operationAmount": {
-                "amount": "41096.24",
+                "amount": "40701.91",
                 "currency": {
                     "name": "USD",
                     "code": "USD"
                 }
             },
-            "description": "Открытие вклада",
-            "to": "Счет 90424923579946435907"
+            "description": "Перевод организации",
+            "from": "Visa Gold 5999414228426353",
+            "to": "Счет 72731966109147704472"
         }
     ]
 
@@ -91,29 +95,28 @@ def test_mask_account_number():
     assert masked_number == '**3456'
 
 
-@pytest.fixture
-def mock_operations_file(tmp_path):
-    test_data = [
-        {'id': 1, 'state': 'EXECUTED', 'date': '2023-01-01T10:00:00'},
-        {'id': 2, 'state': 'PENDING', 'date': '2023-01-02T12:30:00'},
-        {'id': 3, 'state': 'EXECUTED', 'date': '2023-01-03T15:45:00'},
-    ]
+def test_print_requisites():
+    operations_data = executed_files(DATA)
+    sorted_operations = sorted_with_date(operations_data)
 
-    test_file = tmp_path / 'test_data.json'
+    assert print_requisites(sorted_operations) == '''
+    08.12.2019 Открытие вклада
+    Номер карты отсутствует -> **5907
+    41096.24 USD
 
-    with open(test_file, 'w') as file:
-        json.dump(test_data, file)
+    07.12.2019 Перевод организации
+    Visa Classic 2842 87** **** 9012 -> **3655
+    48150.39 USD
 
-    return test_file
+    19.11.2019 Перевод организации
+    Maestro 7810 84** **** 5568 -> **2869
+    30153.72 руб.
 
+    13.11.2019 Перевод со счета на счет
+    Счет **9794 -> **8125
+    62814.53 руб.
 
-def test_load_requisites_file_exists(mock_operations_file):
-    assert os.path.exists(mock_operations_file)
+    05.11.2019 Открытие вклада
+    Номер карты отсутствует -> **8381
+    21344.35 руб.\n'''
 
-
-def test_load_requisites_file_format(mock_operations_file):
-    with open(mock_operations_file, 'r') as file:
-        try:
-            json.load(file)
-        except json.JSONDecodeError:
-            pytest.fail("Invalid JSON format in the operations file")
