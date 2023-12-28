@@ -6,7 +6,7 @@ from config import DATA
 
 def load_requisites(data_path):
     """
-    список EXECUTED реквизитов
+    Функция достает JSON-файл
     """
     with open(data_path) as file:
         requisites_data = json.load(file)
@@ -14,6 +14,9 @@ def load_requisites(data_path):
 
 
 def executed_files(path):
+    """
+    Cписок EXECUTED реквизитов
+    """
     file = load_requisites(path)
     executed_requisites = []
     for i in file:
@@ -56,17 +59,16 @@ def mask_account_number(account_number):
 
 def sorted_with_date(operations):
     """
-    Сортируем операции по дате в убывающем порядке
+    Сортировка операции по дате в убывающем порядке
     """
     sorted_operations = sorted(operations, key=itemgetter('date'), reverse=True)
     return sorted_operations
 
 
-def print_requisites():
-    operations_data = executed_files(DATA)
-    sorted_operations = sorted_with_date(operations_data)
-
-    # Выводим последние 5 операций
+def print_requisites(sorted_operations):
+    """
+    Вывод последниx 5 операций
+    """
     for operation in sorted_operations[:5]:
         print(format_date(operation['date']), operation.get('description', 'Описание отсутствует'))
         print(mask_card_number(operation.get('from', 'Номер карты отсутствует')), "->",
